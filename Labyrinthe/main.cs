@@ -13,16 +13,16 @@ int[] playerPos = new int[] { 0, 0 };
 bool gameFinished = false;
 
 string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut faire labyrinthe[y, x]
-    { "joueur", "vide", "║║║", "vide",  "vide", "vide", "vide", "vide", "║║║",  "clé" },
-    { "vide",   "═══",  "╩═╝", "vide",  "╔═╦",  "═══",  "╦═╗", "vide",  "╚═╝",  "vide" },
-    { "vide",   "vide", "vide", "vide", "╚═╝",  "vide", "╚═╝", "vide",  "vide", "vide" },
-    { "═══",    "╦═╗",  "vide", "╔═╗",  "clé",  "vide", "vide", "═══",  "╦═╗",  "vide" },
-    { "vide",   "╚═╝",  "vide", "║║║",  "vide", "╔═╗",  "vide","vide",  "║║║",  "vide" },
-    { "vide",   "vide", "vide", "╚═╩",  "═══",  "╩═╩",  "╦╦╗", "vide",  "║║║",  "vide" },
-    { "vide",   "╔═╗",  "vide", "vide", "vide", "clé",  "║║║", "vide",  "╚═╝",  "vide" },
-    { "vide",   "║║║",  "vide", "╔═╦",  "═══",  "╦═╦",  "╬╬╣", "vide",  "vide", "vide" },
-    { "vide",   "╚═╝",  "vide", "╚═╝",  "clé",  "║║╠",  "╩═╝", "vide",  "═══",  "═══" },
-    { "vide",   "vide", "vide", "vide", "vide", "╚═╝", "vide", "vide",  "vide", "vide" }
+    { "joueur", "vide", "║║║",    "vide",  "vide", "vide", "vide", "vide", "║║║",  "clé" },
+    { "vide",   "═══",  "╩═╝",    "vide",  "╔═╦",  "═══",  "╦═╗", "vide",  "╚═╝",  "vide" },
+    { "vide",   "vide", "vide",   "vide",  "╚═╝",  "vide", "╚═╝", "vide",  "vide", "vide" },
+    { "═══",    "╦═╗",  "vide",   "╔═╗",   "clé",  "vide", "vide", "═══",  "╦═╗",  "vide" },
+    { "vide",   "╚═╝",  "vide",   "║║║",   "vide", "╔═╗",  "vide","vide",  "║║║",  "vide" },
+    { "vide",   "vide", "vide",   "╚═╩",   "═══",  "╩═╩",  "╦╦╗", "vide",  "║║║",  "vide" },
+    { "vide",   "╔═╗",  "vide",   "vide",  "vide", "clé",  "║║║", "vide",  "╚═╝",  "vide" },
+    { "vide",   "║║║",  "enemmi", "╔═╦",   "═══",  "╦═╦",  "╬╬╣", "enemmi","vide", "vide" },
+    { "vide",   "╚═╝",  "vide",   "╚═╝",   "clé",  "║║╠",  "╩═╝", "vide",  "═══",  "═══" },
+    { "vide",   "vide", "vide",   "vide",  "vide", "╚═╝", "vide", "vide",  "vide", "vide" }
 };
 
 ConsoleColor color = Console.ForegroundColor;
@@ -33,7 +33,7 @@ Draw();
 do {
     cki = Console.ReadKey();
     HandleInput(cki.Key);
-} while (cki.Key != ConsoleKey.Escape || gameFinished);
+} while (cki.Key != ConsoleKey.Escape);
 
 
 void HandleInput(ConsoleKey key) {
@@ -62,6 +62,7 @@ void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgCo
         "joueur" => " █ ",
         "vide" => "   ",
         "clé" => " ⌐ ",
+        "enemmi" => " Ö ",
         _ => cell
     };
     Console.Write(cellContent);
@@ -177,11 +178,14 @@ void Draw() {
                 "joueur" => " █ ",
                 "vide" => "   ",
                 "clé" => " ⌐ ",
+                "enemmi" => " Ö ",
                 _ => labyrinthe[i, j]
             };
 
             if (labyrinthe[i, j] == "clé") {
                 Console.ForegroundColor = ConsoleColor.Yellow;
+            } else if (labyrinthe[i, j] == "enemmi") {
+                Console.ForegroundColor = ConsoleColor.Red;
             }
 
             Console.Write(cell);
