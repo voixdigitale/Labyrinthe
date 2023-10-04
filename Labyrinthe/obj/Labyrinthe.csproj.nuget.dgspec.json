@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Utilisateur\\Documents\\Projets\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj": {}
+    "E:\\C# Projects\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Utilisateur\\Documents\\Projets\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj": {
+    "E:\\C# Projects\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Utilisateur\\Documents\\Projets\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj",
+        "projectUniqueName": "E:\\C# Projects\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj",
         "projectName": "Labyrinthe",
-        "projectPath": "C:\\Users\\Utilisateur\\Documents\\Projets\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj",
-        "packagesPath": "C:\\Users\\Utilisateur\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Utilisateur\\Documents\\Projets\\Labyrinthe\\Labyrinthe\\obj\\",
+        "projectPath": "E:\\C# Projects\\Labyrinthe\\Labyrinthe\\Labyrinthe.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "E:\\C# Projects\\Labyrinthe\\Labyrinthe\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\Utilisateur\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
