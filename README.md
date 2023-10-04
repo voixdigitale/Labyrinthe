@@ -1,5 +1,5 @@
 # Labyrinthe
- Jeu Labyrinthe sur une console C#
+ Jeu Labyrinthe sur une console C#, limité à l'utilisation de texte, variables typées, tableaux et les fonctionnalités de la console.
 
 # Concept
 Un joueur doit récuperer plusieurs objets repartis dans un labyrinthe et sortir avec, sans tomber sur les enemmis
