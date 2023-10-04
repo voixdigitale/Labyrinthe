@@ -10,7 +10,10 @@ int sizeX = 10;
 int sizeY = 10;
 int keys = 0;
 int[] playerPos = new int[] { 0, 0 };
-bool gameFinished = false;
+int[,] enemies = new int[,] {
+    { 2, 7 },
+    { 7, 7 },
+};
 
 string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut faire labyrinthe[y, x]
     { "joueur", "vide", "║║║",    "vide",  "vide", "vide", "vide", "vide", "║║║",  "clé" },
@@ -20,7 +23,7 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
     { "vide",   "╚═╝",  "vide",   "║║║",   "vide", "╔═╗",  "vide","vide",  "║║║",  "vide" },
     { "vide",   "vide", "vide",   "╚═╩",   "═══",  "╩═╩",  "╦╦╗", "vide",  "║║║",  "vide" },
     { "vide",   "╔═╗",  "vide",   "vide",  "vide", "clé",  "║║║", "vide",  "╚═╝",  "vide" },
-    { "vide",   "║║║",  "enemmi", "╔═╦",   "═══",  "╦═╦",  "╬╬╣", "enemmi","vide", "vide" },
+    { "vide",   "║║║",  "ennemi", "╔═╦",   "═══",  "╦═╦",  "╬╬╣", "ennemi","vide", "vide" },
     { "vide",   "╚═╝",  "vide",   "╚═╝",   "clé",  "║║╠",  "╩═╝", "vide",  "═══",  "═══" },
     { "vide",   "vide", "vide",   "vide",  "vide", "╚═╝", "vide", "vide",  "vide", "vide" }
 };
@@ -28,13 +31,54 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
 ConsoleColor color = Console.ForegroundColor;
 ConsoleColor bgColor = Console.BackgroundColor;
 
-Draw();
+Setup();
 
 do {
     cki = Console.ReadKey();
     HandleInput(cki.Key);
 } while (cki.Key != ConsoleKey.Escape);
 
+void Setup() {
+    Console.Clear();
+    for (int y = 0; y < sizeY; y++) {
+        for (int x = 0; x < sizeX; x++) {
+            cell = DecodeCell(labyrinthe[y, x]);
+
+            if (labyrinthe[y, x] == "clé") {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+            } else if (labyrinthe[y, x] == "ennemi") {
+                Console.ForegroundColor = ConsoleColor.Red;
+            }
+
+            Console.Write(cell);
+
+            if (x == sizeX - 1) {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("▓▓\n");
+            }
+
+            Console.ForegroundColor = color;
+        }
+    }
+    for (int i = 0; i < sizeX * 3 + 2; i++) {
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.Write("▓");
+    }
+    Console.ForegroundColor = color;
+
+    UpdateCell(sizeX, 9, "▓▓", ConsoleColor.DarkRed, ConsoleColor.Black, true);
+    Console.WriteLine($"\n\nPosition joueur : {playerPos[0]}, {playerPos[1]}");
+    UpdateCell(0, 13, $"Position ennemi : {enemies[0, 0]}, {enemies[0, 1]}", color, bgColor, true);
+    Console.WriteLine("\nUtilise les flèches du clavier pour bouger, ESC pour sortir :");
+}
+
+string DecodeCell(string cell) => cell switch {
+    "joueur" => " █ ",
+    "vide" => "   ",
+    "clé" => " ⌐ ",
+    "ennemi" => " Ö ",
+    _ => cell
+};
 
 void HandleInput(ConsoleKey key) {
     if (key == ConsoleKey.DownArrow) {
@@ -47,6 +91,7 @@ void HandleInput(ConsoleKey key) {
         MoveRight();
     }
     UpdatePlayerPos();
+    MoveEnemy();
 }
 
 void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgColor, bool isUI = false) {
@@ -58,13 +103,7 @@ void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgCo
     Console.ForegroundColor = color;
     
     Console.SetCursorPosition(x*3, y);
-    string cellContent = cell switch {
-        "joueur" => " █ ",
-        "vide" => "   ",
-        "clé" => " ⌐ ",
-        "enemmi" => " Ö ",
-        _ => cell
-    };
+    string cellContent = DecodeCell(cell);
     Console.Write(cellContent);
     Console.SetCursorPosition(cursorLeft, cursorTop);
 
@@ -74,12 +113,69 @@ void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgCo
     Console.ForegroundColor = originalFG;
 }
 
+void MoveEnemy() {
+    int x = enemies[0, 0];
+    int y = enemies[0, 1];
+    
+    //Check possible moves
+    bool[] nwse = new bool[] {
+            (y - 1 >= 0) && IsWalkable(labyrinthe[y - 1, x]) && labyrinthe[y - 1, x] != "clé",
+            (x - 1 >= 0) && IsWalkable(labyrinthe[y, x - 1]) && labyrinthe[y, x - 1] != "clé",
+            (y + 1 < sizeY) && IsWalkable(labyrinthe[y + 1, x]) && labyrinthe[y + 1, x] != "clé",
+            (x + 1 < sizeX) && IsWalkable(labyrinthe[y, x + 1]) && labyrinthe[y, x + 1] != "clé"
+    };
+
+    int possibleMoves = 0;
+
+    //Extremely inefficient
+    for (int i = 0; i < nwse.Length; i++) {
+        if (nwse[i]) { possibleMoves++; }
+    }
+    //And this is why I'd prefer using Lists...
+    int[] directions = new int[possibleMoves];
+
+    possibleMoves = 0;
+    for (int i = 0; i < nwse.Length; i++) {
+        if (nwse[i]) {
+            directions[possibleMoves] = i;
+            possibleMoves++;
+        }
+    }
+
+    Random rand = new Random();
+    int chosenDirection = rand.Next(0, possibleMoves);
+
+    switch (directions[chosenDirection]) {
+        case 0:
+            enemies[0, 1]--;
+            UpdateCell(x, y, "vide", color, bgColor);
+            UpdateCell(x, y - 1, "ennemi", ConsoleColor.Red, bgColor);
+            break;
+        case 1:
+            enemies[0, 0]--;
+            UpdateCell(x, y, "vide", color, bgColor);
+            UpdateCell(x - 1, y, "ennemi", ConsoleColor.Red, bgColor);
+            break;
+        case 2:
+            enemies[0, 1]++;
+            UpdateCell(x, y, "vide", color, bgColor);
+            UpdateCell(x, y + 1, "ennemi", ConsoleColor.Red, bgColor);
+            break;
+        case 3:
+            enemies[0, 0]++;
+            UpdateCell(x, y, "vide", color, bgColor);
+            UpdateCell(x + 1, y, "ennemi", ConsoleColor.Red, bgColor);
+            break;
+    }
+    UpdateCell(0, 13, $"Position ennemi : {enemies[0, 0]}, {enemies[0, 1]}", color, bgColor, true);
+}
+
 void MoveDown() {
     int x = playerPos[0];
     int y = playerPos[1];
 
     if (y + 1 < sizeY) {
-        if (canStepOn(labyrinthe[y + 1, x])) {
+        if (IsWalkable(labyrinthe[y + 1, x])) {
             if (labyrinthe[y + 1, x] == "clé") {
                 AddKey();
             }
@@ -96,7 +192,7 @@ void MoveUp() {
     int y = playerPos[1];
 
     if (y - 1 >= 0) {
-        if (canStepOn(labyrinthe[y - 1, x])) {
+        if (IsWalkable(labyrinthe[y - 1, x])) {
             if (labyrinthe[y - 1, x] == "clé") {
                 AddKey();
             }
@@ -113,7 +209,7 @@ void MoveLeft() {
     int y = playerPos[1];
 
     if (x - 1 >= 0) {
-        if (canStepOn(labyrinthe[y, x - 1])) {
+        if (IsWalkable(labyrinthe[y, x - 1])) {
             if (labyrinthe[y, x - 1] == "clé") {
                 AddKey();
             }
@@ -130,7 +226,7 @@ void MoveRight() {
     int y = playerPos[1];
 
     if (x + 1 < sizeX ){
-       if (canStepOn(labyrinthe[y, x + 1])) {
+       if (IsWalkable(labyrinthe[y, x + 1])) {
             if (labyrinthe[y, x + 1] == "clé") {
                 AddKey();
             }
@@ -165,48 +261,9 @@ void OpenExit() {
     UpdateCell(sizeX, 9, "     -> Exit", color, bgColor, true);
 }
 
-Boolean canStepOn(string cellType) {
+Boolean IsWalkable(string cellType) {
     if (cellType == "vide" || cellType == "clé") return true;
     return false;
-}
-
-void Draw() {
-    Console.Clear();
-    for (int i = 0; i < sizeX; i++) {
-        for (int j = 0; j < sizeY; j++) {
-            cell = labyrinthe[i, j] switch {
-                "joueur" => " █ ",
-                "vide" => "   ",
-                "clé" => " ⌐ ",
-                "enemmi" => " Ö ",
-                _ => labyrinthe[i, j]
-            };
-
-            if (labyrinthe[i, j] == "clé") {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            } else if (labyrinthe[i, j] == "enemmi") {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-
-            Console.Write(cell);
-
-            if (j == sizeX - 1) {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("▓▓\n");
-            }
-
-            Console.ForegroundColor = color;
-        }
-    }
-    for (int i = 0; i < sizeX * 3 + 2; i++) {
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.Write("▓");
-    }
-    Console.ForegroundColor = color;
-
-    UpdateCell(sizeX, 9, "▓▓", ConsoleColor.DarkRed, ConsoleColor.Black, true);
-    Console.WriteLine($"\n\nPosition joueur : {playerPos[0]}, {playerPos[1]}");
-    Console.WriteLine("\nUtilise les flèches du clavier pour bouger, ESC pour sortir :");
 }
 
 void UpdatePlayerPos() {
