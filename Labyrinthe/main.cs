@@ -147,9 +147,17 @@ void MoveEnemy(int enemyNum) {
     }
 
     Random rand = new Random();
-    int chosenDirection = rand.Next(0, possibleMoves);
+    int chosenDirection;
+        
+    if (Array.Exists(directions, checkDir => checkDir == enemyWalkDir[enemyNum])) {
+        chosenDirection = enemyWalkDir[enemyNum];
+    } else {
+        chosenDirection = directions[rand.Next(0, possibleMoves)];
+    }
 
-    switch (directions[chosenDirection]) {
+    enemyWalkDir[enemyNum] = chosenDirection;
+
+    switch (chosenDirection) {
         case 0:
             if (labyrinthe[y - 1, x] == "joueur") DisplayGameOverAndExit();
             enemies[enemyNum, 1]--;
@@ -270,7 +278,7 @@ void OpenExit() {
 }
 
 Boolean IsWalkable(string cellType) {
-    if (cellType == "vide" || cellType == "clé" || cellType == "joueur") return true;
+    if (cellType == "vide" || cellType == "clé" || cellType == "joueur" || cellType == "ennemi") return true;
     return false;
 }
 
