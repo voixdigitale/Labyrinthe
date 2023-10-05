@@ -15,6 +15,10 @@ int[,] enemies = new int[,] {
     { 7, 7 },
 };
 int[] enemyWalkDir = new int[] { -1, -1 };
+int[] enemyRebounds = new int[] { 0, 0 };
+int reboundLimit = 2;
+bool userWantsToQuit = false;
+bool gameIsFinished = false;
 
 string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut faire labyrinthe[y, x]
     { "joueur", "vide", "║║║",    "vide",  "vide", "vide", "vide", "vide", "║║║",  "clé" },
@@ -28,16 +32,19 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
     { "vide",   "╚═╝",  "vide",   "╚═╝",   "clé",  "║║╠",  "╩═╝", "vide",  "═══",  "═══" },
     { "vide",   "vide", "vide",   "vide",  "vide", "╚═╝", "vide", "vide",  "vide", "vide" }
 };
+string[,] originalLabyrinthe = labyrinthe.Clone() as string[,];
+int[,] originalEnemies = enemies.Clone() as int[,];
 
 ConsoleColor color = Console.ForegroundColor;
 ConsoleColor bgColor = Console.BackgroundColor;
 
 Setup();
 
-do {
+while (!userWantsToQuit) {
     cki = Console.ReadKey();
+    if (cki.Key == ConsoleKey.Escape) userWantsToQuit = true;
     HandleInput(cki.Key);
-} while (cki.Key != ConsoleKey.Escape);
+}
 
 void Setup() {
     Console.Clear();
@@ -81,20 +88,37 @@ string DecodeCell(string cell) => cell switch {
     _ => cell
 };
 
+void ResetGameplay() {
+    gameIsFinished = false;
+    labyrinthe = originalLabyrinthe;
+    playerPos = new int[] { 0, 0 };
+    enemyWalkDir = new int[] { -1, -1 };
+    enemyRebounds = new int[] { 0, 0 };
+    enemies = originalEnemies;
+}
 void HandleInput(ConsoleKey key) {
-    if (key == ConsoleKey.DownArrow) {
-        MoveDown();
-    } else if (key == ConsoleKey.UpArrow) {
-        MoveUp();
-    } else if (key == ConsoleKey.LeftArrow) {
-        MoveLeft();
-    } else if (key == ConsoleKey.RightArrow) {
-        MoveRight();
-    }
-    UpdatePlayerPos();
+    if (!gameIsFinished) {
+        if (key == ConsoleKey.DownArrow) {
+            MoveDown();
+        } else if (key == ConsoleKey.UpArrow) {
+            MoveUp();
+        } else if (key == ConsoleKey.LeftArrow) {
+            MoveLeft();
+        } else if (key == ConsoleKey.RightArrow) {
+            MoveRight();
+        }
 
-    for (int enemyNum = 0; enemyNum < enemies.GetLength(0); enemyNum++) {
-        MoveEnemy(enemyNum);
+        UpdatePlayerPos();
+
+        for (int enemyNum = 0; enemyNum < enemies.GetLength(0); enemyNum++) {
+            MoveEnemy(enemyNum);
+        }
+    }
+
+    if (key == ConsoleKey.R) {
+        ResetGameplay();
+        Setup();
+        return;
     }
 }
 
@@ -145,14 +169,19 @@ void MoveEnemy(int enemyNum) {
             possibleMoves++;
         }
     }
+    if (possibleMoves == 1) { //Si on est dans un coin sans sortie
+        enemyRebounds[enemyNum]++;
+    }
 
-    Random rand = new Random();
     int chosenDirection;
-        
-    if (Array.Exists(directions, checkDir => checkDir == enemyWalkDir[enemyNum])) {
+    bool IsGoodDir = Array.Exists(directions, checkDir => checkDir == enemyWalkDir[enemyNum]);//Vous m'excuserez !
+
+    if (enemyRebounds[enemyNum] < reboundLimit && possibleMoves != 3 && IsGoodDir) {
         chosenDirection = enemyWalkDir[enemyNum];
     } else {
+        Random rand = new Random();
         chosenDirection = directions[rand.Next(0, possibleMoves)];
+        enemyRebounds[enemyNum] = 0;
     }
 
     enemyWalkDir[enemyNum] = chosenDirection;
@@ -256,7 +285,7 @@ void MoveRight() {
         UpdateCell(x + 2, y, "joueur", color, bgColor, true);
         ReplaceInputMessage();
         PlayVictorySong();
-        Environment.Exit(0);
+        gameIsFinished = true;
     }
 }
 
@@ -287,15 +316,15 @@ void UpdatePlayerPos() {
 }
 
 void ReplaceInputMessage() {
-    UpdateCell(0, 15, "Félicitations et merci d'avoir joué !                       ", ConsoleColor.Magenta, bgColor, true);
+    UpdateCell(0, 15, "Félicitations et merci d'avoir joué ! Appuyez sur R pour recommencer !", ConsoleColor.Magenta, bgColor, true);
 }
 
 void DisplayGameOverAndExit() {
     UpdateCell(0, 3, "╔═╗ ╔═╗ ╔╦╗ ╔══  ╔═╗ ╦ ╦ ╔══ ╔══╗", ConsoleColor.Red, bgColor, true);
     UpdateCell(0, 4, "║ ╦ ╠═╣ ║ ║ ╠═   ║ ║ ║ ║ ╠═  ╠═╦╝", ConsoleColor.Red, bgColor, true);
     UpdateCell(0, 5, "╚═╝ ╩ ╩ ╩ ╩ ╚══  ╚═╝  ╚╝ ╚══ ╩ ╩═", ConsoleColor.Red, bgColor, true);
-    ReplaceInputMessage();
-    Environment.Exit(0);
+    UpdateCell(0, 6, "  Appuyez sur R pour recommencer ", ConsoleColor.Red, bgColor, true);
+    gameIsFinished = true;
 }
 
 void PlayGetKeySound() {
