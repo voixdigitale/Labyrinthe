@@ -14,6 +14,7 @@ int[,] enemies = new int[,] {
     { 2, 7 },
     { 7, 7 },
 };
+int[] enemyWalkDir = new int[] { -1, -1 };
 
 string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut faire labyrinthe[y, x]
     { "joueur", "vide", "║║║",    "vide",  "vide", "vide", "vide", "vide", "║║║",  "clé" },
@@ -69,7 +70,7 @@ void Setup() {
     UpdateCell(sizeX, 9, "▓▓", ConsoleColor.DarkRed, ConsoleColor.Black, true);
     Console.WriteLine($"\n\nPosition joueur : {playerPos[0]}, {playerPos[1]}");
     UpdateCell(0, 13, $"Position ennemi : {enemies[0, 0]}, {enemies[0, 1]}", color, bgColor, true);
-    Console.WriteLine("\nUtilise les flèches du clavier pour bouger, ESC pour sortir :");
+    Console.WriteLine("\n\nUtilise les flèches du clavier pour bouger, ESC pour sortir :");
 }
 
 string DecodeCell(string cell) => cell switch {
@@ -91,7 +92,10 @@ void HandleInput(ConsoleKey key) {
         MoveRight();
     }
     UpdatePlayerPos();
-    MoveEnemy();
+
+    for (int enemyNum = 0; enemyNum < enemies.GetLength(0); enemyNum++) {
+        MoveEnemy(enemyNum);
+    }
 }
 
 void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgColor, bool isUI = false) {
@@ -113,9 +117,9 @@ void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgCo
     Console.ForegroundColor = originalFG;
 }
 
-void MoveEnemy() {
-    int x = enemies[0, 0];
-    int y = enemies[0, 1];
+void MoveEnemy(int enemyNum) {
+    int x = enemies[enemyNum, 0];
+    int y = enemies[enemyNum, 1];
     
     //Check possible moves
     bool[] nwse = new bool[] {
@@ -147,27 +151,31 @@ void MoveEnemy() {
 
     switch (directions[chosenDirection]) {
         case 0:
-            enemies[0, 1]--;
+            if (labyrinthe[y - 1, x] == "joueur") DisplayGameOverAndExit();
+            enemies[enemyNum, 1]--;
             UpdateCell(x, y, "vide", color, bgColor);
             UpdateCell(x, y - 1, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 1:
-            enemies[0, 0]--;
+            if (labyrinthe[y, x - 1] == "joueur") DisplayGameOverAndExit();
+            enemies[enemyNum, 0]--;
             UpdateCell(x, y, "vide", color, bgColor);
             UpdateCell(x - 1, y, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 2:
-            enemies[0, 1]++;
+            if (labyrinthe[y + 1, x] == "joueur") DisplayGameOverAndExit();
+            enemies[enemyNum, 1]++;
             UpdateCell(x, y, "vide", color, bgColor);
             UpdateCell(x, y + 1, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 3:
-            enemies[0, 0]++;
+            if (labyrinthe[y, x + 1] == "joueur")  DisplayGameOverAndExit();
+            enemies[enemyNum, 0]++;
             UpdateCell(x, y, "vide", color, bgColor);
             UpdateCell(x + 1, y, "ennemi", ConsoleColor.Red, bgColor);
             break;
     }
-    UpdateCell(0, 13, $"Position ennemi : {enemies[0, 0]}, {enemies[0, 1]}", color, bgColor, true);
+    UpdateCell(0, 13 + enemyNum, $"Position ennemi : {enemies[enemyNum, 0]}, {enemies[enemyNum, 1]}", color, bgColor, true);
 }
 
 void MoveDown() {
@@ -262,7 +270,7 @@ void OpenExit() {
 }
 
 Boolean IsWalkable(string cellType) {
-    if (cellType == "vide" || cellType == "clé") return true;
+    if (cellType == "vide" || cellType == "clé" || cellType == "joueur") return true;
     return false;
 }
 
@@ -271,7 +279,15 @@ void UpdatePlayerPos() {
 }
 
 void ReplaceInputMessage() {
-    UpdateCell(0, 14, "Félicitations et merci d'avoir joué !                       ", ConsoleColor.Magenta, bgColor, true);
+    UpdateCell(0, 15, "Félicitations et merci d'avoir joué !                       ", ConsoleColor.Magenta, bgColor, true);
+}
+
+void DisplayGameOverAndExit() {
+    UpdateCell(0, 3, "╔═╗ ╔═╗ ╔╦╗ ╔══  ╔═╗ ╦ ╦ ╔══ ╔══╗", ConsoleColor.Red, bgColor, true);
+    UpdateCell(0, 4, "║ ╦ ╠═╣ ║ ║ ╠═   ║ ║ ║ ║ ╠═  ╠═╦╝", ConsoleColor.Red, bgColor, true);
+    UpdateCell(0, 5, "╚═╝ ╩ ╩ ╩ ╩ ╚══  ╚═╝  ╚╝ ╚══ ╩ ╩═", ConsoleColor.Red, bgColor, true);
+    ReplaceInputMessage();
+    Environment.Exit(0);
 }
 
 void PlayGetKeySound() {
