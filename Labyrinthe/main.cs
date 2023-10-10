@@ -1,4 +1,6 @@
 ﻿#region variable_declarations
+using System.Reflection.Metadata.Ecma335;
+
 ConsoleKeyInfo cki;
 string cell;
 
@@ -10,8 +12,9 @@ int[,] enemies = new int[,] {
     { 1, 7 },
     { 7, 7 },
     { 11, 4 },
-    { 13, 15 },
+    { 13, 16 },
 };
+
 int[] enemyWalkDir;
 int[] enemyRebounds;
 int reboundLimit = 2;
@@ -28,7 +31,7 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
     { "vide",   "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "vide", "vide", "vide", "vide", "vide", "vide", "║║║",  "clé", "vide", "vide" },
     { "╔═╗",    "vide", "╔═╗",  "vide", "╚═╝",  "vide", "║║║",  "vide", "╚═╩",  "═══",  "╦═╗",  "vide", "═══",  "═══",  "╦═╗",  "vide", "║║╠",  "═══",  "═══",  "═══" },
     { "║║║",    "vide", "║║║",  "vide", "vide", "vide", "║║║",  "vide", "vide", "clé",  "║║║",  "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "vide", "vide" },
-    { "╚═╝",    "vide", "╣║╠",  "═══",  "═══",  "vide", "║║║",  "vide", "╔═╦",  "═══",  "╣║║",  "vide", "╔═╦",  "═══",  "╣║║",  "vide", "║║║",  "vide", "╔═╗",  "vide" },
+    { "╚═╝",    "vide", "║║╠",  "═══",  "═══",  "vide", "║║║",  "vide", "╔═╦",  "═══",  "╣║║",  "vide", "╔═╦",  "═══",  "╣║║",  "vide", "║║║",  "vide", "╔═╗",  "vide" },
     { "vide",   "vide", "║║║",  "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide" },
     { "═══",    "vide", "║║╠",  "═══",  "═══",  "vide", "║║║",  "vide", "║║║",  "vide", "╚═╝",  "vide", "╚═╝",  "vide", "╚═╩",  "═══",  "╩═╝",  "vide", "╚═╩",  "═══" },
     { "clé",    "vide", "║║║",  "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide" },
@@ -42,8 +45,10 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
     { "clé",    "vide", "║║║",  "vide", "║║║",  "clé",  "vide", "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "vide", "vide", "║║║",  "vide" },
     { "╔═╗",    "vide", "║║║",  "vide", "║║╠",  "═══",  "═══",  "═══",  "═══",  "═══",  "╣║╠",  "═══",  "╣║╠",  "═══",  "╣║║",  "clé", "╔═╗",  "vide", "║║║",  "vide" }
 };
-string[,] originalLabyrinthe = labyrinthe.Clone() as string[,];
-int[,] originalEnemies = enemies.Clone() as int[,];
+
+string[,] originalLabyrinthe = Copy2DArray(labyrinthe);
+int[,] originalEnemies = Copy2DArray(enemies);
+
 CancellationTokenSource cts;
 
 ConsoleColor color = Console.ForegroundColor;
@@ -224,8 +229,8 @@ async Task MoveLoop(CancellationToken cancellationToken) {
         }
         await Task.Delay(700);
     }
-    ResetGameplay();
 }
+
 #endregion
 #region PlayerMovement
 void HandleInput(ConsoleKey key) {
@@ -339,8 +344,8 @@ void ResetRebounds() {
 }
 
 void ResetGameplay() {
-    labyrinthe = originalLabyrinthe;
-    enemies = originalEnemies;
+    labyrinthe = Copy2DArray(originalLabyrinthe);
+    enemies = Copy2DArray(originalEnemies);
     playerPos = new int[] { 0, 0 };
     ResetWalkDirs();
     ResetRebounds();
@@ -427,5 +432,18 @@ void PlayVictorySong() {
     Console.Beep(933, 100);
     Console.Beep(933, 100);
     Console.Beep(1047, 400);
+}
+#endregion
+#region Outils
+T[,] Copy2DArray<T>(T[,] originalArray) {
+    T[,] copiedArray = new T[originalArray.GetLength(0), originalArray.GetLength(1)];
+
+    for (int i = 0; i < originalArray.GetLength(0); i++) {
+        for (int j = 0; j < originalArray.GetLength(1); j++) {
+            copiedArray[i, j] = originalArray[i, j];
+        }
+    }
+
+    return copiedArray;
 }
 #endregion
