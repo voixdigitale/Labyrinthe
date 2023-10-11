@@ -1,5 +1,6 @@
 ﻿#region variable_declarations
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 
 ConsoleKeyInfo cki;
 string cell;
@@ -22,6 +23,7 @@ int exitY = 10;
 int neededKeys = 6;
 bool userWantsToQuit = false;
 bool gameIsFinished = false;
+int[] defaultCursorPos = new int[] { 0, 28 };
 
 string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut faire labyrinthe[y, x]
     { "joueur", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "vide", "║║║",  "vide", "║║║",  "vide", "║║║",  "vide", "vide", "vide", "vide", "vide" },
@@ -56,6 +58,7 @@ ConsoleColor bgColor = Console.BackgroundColor;
 #endregion
 
 Setup();
+
 
 while (!userWantsToQuit) {
     cki = Console.ReadKey();
@@ -100,8 +103,8 @@ void Setup() {
     //UpdateCell(0, sizeY + 3, $"Position ennemi : {enemies[0, 0]}, {enemies[0, 1]}", color, bgColor, true);
     UpdateCell(0, sizeY + 3 + enemies.GetUpperBound(0) + 1, $"Utilise les flèches du clavier pour bouger, ESC pour sortir :", color, bgColor, true);
     cts = new CancellationTokenSource();
-    MoveLoop(cts.Token);
     gameIsFinished = false;
+    MoveLoop(cts.Token);
 }
 
 string DecodeCell(string cell) => cell switch {
@@ -111,26 +114,6 @@ string DecodeCell(string cell) => cell switch {
     "ennemi" => " Ö ",
     _ => cell
 };
-
-void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgColor, bool isUI = false) {
-    (int cursorLeft, int cursorTop) = Console.GetCursorPosition();
-    ConsoleColor originalBG = Console.BackgroundColor;
-    ConsoleColor originalFG = Console.ForegroundColor;
-
-    Console.BackgroundColor = bgColor;
-    Console.ForegroundColor = color;
-
-    Console.SetCursorPosition(x * 3, y);
-    string cellContent = DecodeCell(cell);
-    Console.Write(cellContent);
-    Console.SetCursorPosition(cursorLeft, cursorTop);
-
-    if (!isUI)
-        labyrinthe[y, x] = cell;
-
-    Console.BackgroundColor = originalBG;
-    Console.ForegroundColor = originalFG;
-}
 
 string GetCell(int x, int y) {
     return labyrinthe[y, x];
@@ -148,6 +131,7 @@ void CheckAndGrabKey(int x, int y) {
     }
 }
 #endregion
+
 #region EnemyMovement
 void MoveEnemy(int enemyNum) {
     int x = enemies[enemyNum, 0];
@@ -232,6 +216,7 @@ async Task MoveLoop(CancellationToken cancellationToken) {
 }
 
 #endregion
+
 #region PlayerMovement
 void HandleInput(ConsoleKey key) {
     if (!gameIsFinished) {
@@ -329,6 +314,7 @@ void MoveRight() {
     }
 }
 #endregion
+
 #region Gameplay
 void ResetWalkDirs() {
     enemyWalkDir = new int[enemies.GetUpperBound(0) + 1];
@@ -375,7 +361,28 @@ void OpenExit() {
     UpdateCell(sizeX, exitY, "     -> Exit", color, bgColor, true);
 }
 #endregion
+
 #region UI
+void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgColor, bool isUI = false) {
+    (int cursorLeft, int cursorTop) = Console.GetCursorPosition();
+    ConsoleColor originalBG = Console.BackgroundColor;
+    ConsoleColor originalFG = Console.ForegroundColor;
+
+    Console.BackgroundColor = bgColor;
+    Console.ForegroundColor = color;
+
+    Console.SetCursorPosition(x * 3, y);
+    string cellContent = DecodeCell(cell);
+    Console.Write(cellContent);
+    Console.SetCursorPosition(cursorLeft, cursorTop);
+
+    if (!isUI)
+        labyrinthe[y, x] = cell;
+
+    Console.BackgroundColor = originalBG;
+    Console.ForegroundColor = originalFG;
+}
+
 void UpdatePlayerPos() {
     UpdateCell(0, sizeY + 2, $"Position joueur : {playerPos[0]}, {playerPos[1]}", color, bgColor, true);
 }
@@ -386,12 +393,32 @@ void ReplaceInputMessage() {
 
 void DisplayGameOverAndFinish() {
     gameIsFinished = true;
-    UpdateCell(sizeX / 4, 3, "╔═╗ ╔═╗ ╔╦╗ ╔══  ╔═╗ ╦ ╦ ╔══ ╔══╗", ConsoleColor.Red, bgColor, true);
-    UpdateCell(sizeX / 4, 4, "║ ╦ ╠═╣ ║ ║ ╠═   ║ ║ ║ ║ ╠═  ╠═╦╝", ConsoleColor.Red, bgColor, true);
-    UpdateCell(sizeX / 4, 5, "╚═╝ ╩ ╩ ╩ ╩ ╚══  ╚═╝  ╚╝ ╚══ ╩ ╩═", ConsoleColor.Red, bgColor, true);
-    UpdateCell(sizeX / 4, 6, "  Appuyez sur R pour recommencer ", ConsoleColor.Red, bgColor, true);
+
+    LineTypeWriter(sizeX * 3 / 4, 3, "╔═╗ ╔═╗ ╔╦╗ ╔══  ╔═╗ ╦ ╦ ╔══ ╔══╗", ConsoleColor.Red, 5, 0);
+    LineTypeWriter(sizeX * 3 / 4, 4, "║ ╦ ╠═╣ ║ ║ ╠═   ║ ║ ║ ║ ╠═  ╠═╦╝", ConsoleColor.Red, 5, 700);
+    LineTypeWriter(sizeX * 3 / 4, 5, "╚═╝ ╩ ╩ ╩ ╩ ╚══  ╚═╝  ╚╝ ╚══ ╩ ╩═", ConsoleColor.Red, 5, 1400);
+    LineTypeWriter(sizeX * 3 / 4, 6, "  Appuyez sur R pour recommencer ", ConsoleColor.Red, 5, 2100);
+
+    Console.SetCursorPosition(defaultCursorPos[0], defaultCursorPos[1]);
 }
+
+async Task LineTypeWriter(int col, int row, string userString, ConsoleColor color, int delay, int startDelay = 0) {
+    await Task.Delay(startDelay);
+    for (int i = 0; i < userString.Length; i++) {
+        (int cursorLeft, int cursorTop) = Console.GetCursorPosition();
+        ConsoleColor originalFG = Console.ForegroundColor;
+        Console.SetCursorPosition(col, row);
+        Console.ForegroundColor = color;
+        Console.Write(userString[i]);
+        col++;
+        Console.SetCursorPosition(cursorLeft, cursorTop);
+        Console.ForegroundColor = originalFG;
+        await Task.Delay(delay);
+    }
+}
+
 #endregion
+
 #region Sound
 void PlayGetKeySound() {
     Console.Beep(800, 25);
@@ -434,6 +461,7 @@ void PlayVictorySong() {
     Console.Beep(1047, 400);
 }
 #endregion
+
 #region Outils
 T[,] Copy2DArray<T>(T[,] originalArray) {
     T[,] copiedArray = new T[originalArray.GetLength(0), originalArray.GetLength(1)];
