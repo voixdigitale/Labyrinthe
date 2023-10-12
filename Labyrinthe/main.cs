@@ -1,7 +1,4 @@
 ﻿#region variable_declarations
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-
 ConsoleKeyInfo cki;
 string cell;
 
@@ -51,20 +48,82 @@ string[,] labyrinthe = new string[,] { //Attention, pour l'accéder il faut fair
 string[,] originalLabyrinthe = Copy2DArray(labyrinthe);
 int[,] originalEnemies = Copy2DArray(enemies);
 
+bool[,] needsUpdate = new bool[sizeY, sizeX];
+
+
 CancellationTokenSource cts;
 
 ConsoleColor color = Console.ForegroundColor;
 ConsoleColor bgColor = Console.BackgroundColor;
 #endregion
 
+#region Start
 Setup();
-
+Update(4);
 
 while (!userWantsToQuit) {
-    cki = Console.ReadKey();
-    if (cki.Key == ConsoleKey.Escape) userWantsToQuit = true;
-    HandleInput(cki.Key);
+    HandleInput();
 }
+#endregion
+
+#region Update
+async Task Update(int refreshRate) {
+    while (!gameIsFinished) {
+        Render();
+        await Task.Delay(refreshRate);
+    }
+}
+#endregion
+
+void Render() {
+    for (int y = 0; y < sizeY; y++) {
+        for (int x = 0; x < sizeX; x++) {
+            if (needsUpdate[y, x]) {
+                Console.CursorVisible = false;
+                Console.SetCursorPosition(x * 3, y);
+                cell = labyrinthe[y, x];
+                string cellContent = DecodeCell(cell);
+                Console.Write(cellContent);
+            }
+        }
+    }
+    Console.CursorVisible = true;
+    Console.SetCursorPosition(defaultCursorPos[0], defaultCursorPos[1]);
+}
+
+#region Input
+void HandleInput() {
+    cki = Console.ReadKey();
+    ConsoleKey key = cki.Key;
+    if (key == ConsoleKey.Escape)
+        userWantsToQuit = true;
+
+    if (!gameIsFinished) {
+        if (key == ConsoleKey.DownArrow) {
+            MoveDown();
+        } else if (key == ConsoleKey.UpArrow) {
+            MoveUp();
+        } else if (key == ConsoleKey.LeftArrow) {
+            MoveLeft();
+        } else if (key == ConsoleKey.RightArrow) {
+            MoveRight();
+        }
+
+        UpdatePlayerPos();
+    }
+
+    if (key == ConsoleKey.R) {
+        ResetGameplay();
+        Setup();
+        return;
+    }
+
+    if (key == ConsoleKey.C) {
+        cts.Cancel();
+        return;
+    }
+}
+#endregion
 
 #region Labyrinthe
 void Setup() {
@@ -218,31 +277,6 @@ async Task MoveLoop(CancellationToken cancellationToken) {
 #endregion
 
 #region PlayerMovement
-void HandleInput(ConsoleKey key) {
-    if (!gameIsFinished) {
-        if (key == ConsoleKey.DownArrow) {
-            MoveDown();
-        } else if (key == ConsoleKey.UpArrow) {
-            MoveUp();
-        } else if (key == ConsoleKey.LeftArrow) {
-            MoveLeft();
-        } else if (key == ConsoleKey.RightArrow) {
-            MoveRight();
-        }
-        UpdatePlayerPos();
-    }
-
-    if (key == ConsoleKey.R) {
-        ResetGameplay();
-        Setup();
-        return;
-    }
-
-    if (key == ConsoleKey.C) {
-        cts.Cancel();
-        return;
-    }
-}
 
 void MoveDown() {
     int x = playerPos[0];
@@ -364,7 +398,7 @@ void OpenExit() {
 
 #region UI
 void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgColor, bool isUI = false) {
-    (int cursorLeft, int cursorTop) = Console.GetCursorPosition();
+    /*(int cursorLeft, int cursorTop) = Console.GetCursorPosition();
     ConsoleColor originalBG = Console.BackgroundColor;
     ConsoleColor originalFG = Console.ForegroundColor;
 
@@ -374,13 +408,16 @@ void UpdateCell(int x, int y, string cell, ConsoleColor color, ConsoleColor bgCo
     Console.SetCursorPosition(x * 3, y);
     string cellContent = DecodeCell(cell);
     Console.Write(cellContent);
-    Console.SetCursorPosition(cursorLeft, cursorTop);
+    Console.SetCursorPosition(cursorLeft, cursorTop);*/
 
-    if (!isUI)
+    if (!isUI) {
         labyrinthe[y, x] = cell;
+        needsUpdate[y, x] = true;
+    }
+        
 
-    Console.BackgroundColor = originalBG;
-    Console.ForegroundColor = originalFG;
+    /*Console.BackgroundColor = originalBG;
+    Console.ForegroundColor = originalFG;*/
 }
 
 void UpdatePlayerPos() {
