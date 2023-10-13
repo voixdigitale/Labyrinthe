@@ -94,7 +94,6 @@ void HandleInput() {
             MoveRight();
         }
 
-        //UpdatePlayerPos(); //Debug
     }
 
     if (key == ConsoleKey.R) {
@@ -137,6 +136,7 @@ void ResetGameplay() {
     labyrinthe = Copy2DArray(originalLabyrinthe);
     enemies = Copy2DArray(originalEnemies);
     playerPos = new int[] { 0, 0 };
+    keys = 0;
     ResetWalkDirs();
     ResetRebounds();
     cts.Cancel();
@@ -144,13 +144,14 @@ void ResetGameplay() {
 
 void CheckEnemyAndDie(int x, int y) {
     if (GetCell(x, y) == "ennemi") {
+        PlayDieSound();
         DisplayGameOverAndFinish();
     }
 }
 
 void AddKey() {
     keys++;
-    DrawMessage(sizeX * 3 + 1, 1, $"Clés : {keys}", color, bgColor);
+    DrawMessage(sizeX * 3 + 3, 1, $"Clés : {keys}", color, bgColor);
     PlayGetKeySound();
 
     if (keys == neededKeys) {
@@ -207,31 +208,38 @@ void MoveEnemy(int enemyNum) {
 
     switch (chosenDirection) {
         case 0:
-            if (GetCell(x, y - 1) == "joueur") DisplayGameOverAndFinish();
+            CheckPlayerAndKill(x, y - 1);
             enemies[enemyNum, 1]--;
             UpdateLabyrinth(x, y, "vide", color, bgColor);
             UpdateLabyrinth(x, y - 1, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 1:
-            if (GetCell(x - 1, y) == "joueur") DisplayGameOverAndFinish();
+            CheckPlayerAndKill(x - 1, y);
             enemies[enemyNum, 0]--;
             UpdateLabyrinth(x, y, "vide", color, bgColor);
             UpdateLabyrinth(x - 1, y, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 2:
-            if (GetCell(x, y + 1) == "joueur") DisplayGameOverAndFinish();
+            CheckPlayerAndKill(x, y + 1);
             enemies[enemyNum, 1]++;
             UpdateLabyrinth(x, y, "vide", color, bgColor);
             UpdateLabyrinth(x, y + 1, "ennemi", ConsoleColor.Red, bgColor);
             break;
         case 3:
-            if (GetCell(x + 1, y) == "joueur")  DisplayGameOverAndFinish();
+            CheckPlayerAndKill(x + 1, y);
             enemies[enemyNum, 0]++;
             UpdateLabyrinth(x, y, "vide", color, bgColor);
             UpdateLabyrinth(x + 1, y, "ennemi", ConsoleColor.Red, bgColor);
             break;
     }
     //UpdateCell(0, sizeY + 3 + enemyNum, $"Position ennemi : {enemies[enemyNum, 0]}, {enemies[enemyNum, 1]}", color, bgColor, true);
+}
+
+void CheckPlayerAndKill(int x, int y) {
+    if (GetCell(x, y) == "joueur") {
+        DisplayGameOverAndFinish();
+        PlayDieSound();
+    }
 }
 
 void ResetWalkDirs() {
@@ -252,6 +260,7 @@ async Task MoveLoop(CancellationToken cancellationToken) {
         for (int enemyNum = 0; enemyNum <= enemies.GetUpperBound(0); enemyNum++) {
             MoveEnemy(enemyNum);
         }
+        PlayStepSound();
         await Task.Delay(700);
     }
 }
@@ -327,7 +336,7 @@ void MoveRight() {
 }
 
 void CheckVictory(int x, int y) {
-    if (x == sizeX - 1 && y == exitY && keys == neededKeys) {
+    if (x == sizeX - 1 && y == exitY && keys >= neededKeys) {
         UpdateLabyrinth(x, y, "vide", color, bgColor);
         DrawMessage(x + 2, y, DecodeCell("joueur"), color, bgColor);
         ReplaceInputMessage();
@@ -348,11 +357,7 @@ void Setup() {
         for (int x = 0; x < sizeX; x++) {
             cell = DecodeCell(labyrinthe[y, x]);
 
-            if (labyrinthe[y, x] == "clé") {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-            } else if (labyrinthe[y, x] == "ennemi") {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
+            Console.ForegroundColor = GetRenderColor(labyrinthe[y, x]);
 
             Console.Write(cell);
 
@@ -477,7 +482,7 @@ async Task LineTypeWriter(int col, int row, string userString, ConsoleColor colo
 #endregion
 
 #region Sound
-void PlayGetKeySound() {
+async Task PlayGetKeySound() {
     Console.Beep(800, 25);
     Console.Beep(1400, 100);
 }
@@ -488,23 +493,16 @@ void PlayOpenDoorSound() {
     }
 }
 
+async Task PlayStepSound() {
+    Console.Beep(160, 25);
+}
+
+async Task PlayDieSound() {
+    Console.Beep(350, 250);
+    Console.Beep(300, 500);
+}
+
 void PlayVictorySong() {
-    Console.Beep(130, 100);
-    Console.Beep(262, 100);
-    Console.Beep(330, 100);
-    Console.Beep(392, 100);
-    Console.Beep(523, 100);
-    Console.Beep(660, 100);
-    Console.Beep(784, 300);
-    Console.Beep(660, 300);
-    Console.Beep(146, 100);
-    Console.Beep(262, 100);
-    Console.Beep(311, 100);
-    Console.Beep(415, 100);
-    Console.Beep(523, 100);
-    Console.Beep(622, 100);
-    Console.Beep(831, 300);
-    Console.Beep(622, 300);
     Console.Beep(155, 100);
     Console.Beep(294, 100);
     Console.Beep(349, 100);
