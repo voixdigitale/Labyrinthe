@@ -2,7 +2,7 @@
  Jeu Labyrinthe sur une console C#, <strong>limité à l'utilisation de texte, variables typées, tableaux et les fonctionnalités de la console.</strong>
 
 # Instructions
-Téléchargez le zip disponible dans la section "<a href="https://github.com/voixdigitale/Labyrinthe/releases/tag/v0.9">releases</a>" ici à droite 👉
+Téléchargez le fichier Labyrinthe.zip disponible dans la section "<a href="https://github.com/voixdigitale/Labyrinthe/releases/tag/v0.9">releases</a>" ici à droite 👉
 
 Extrayez tous les fichiers et faites double clic sur le fichier exécutable
 
