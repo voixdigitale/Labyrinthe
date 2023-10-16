@@ -1,6 +1,19 @@
 # Labyrinthe
  Jeu Labyrinthe sur une console C#, <strong>limité à l'utilisation de texte, variables typées, tableaux et les fonctionnalités de la console.</strong>
 
+# Instructions
+Téléchargez le zip disponible dans la section "release" ici à droite 👉
+
+Extrayez tous les fichiers et faites double clic sur le fichier exécutable
+
+# Avez vous testé ? Laissez un commentaire !
+Si vous avez testé ce petit projet, créez une "Issue" ici tout en haut ☝️
+
+Séléctionnez l'étiquette "feedback" et dites moi :
+- Avez vous réussi à finir le jeu ?
+- C'était clair comment vous déplacer ?
+- Avez vous eu des erreurs de son ou d'affichage ?
+
 # Concept
 Un joueur doit récuperer plusieurs objets repartis dans un labyrinthe et sortir avec, sans tomber sur les enemmis
 <div style="height: 600px">
