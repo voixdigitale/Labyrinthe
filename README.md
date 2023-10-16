@@ -7,7 +7,7 @@ Téléchargez le zip disponible dans la section "release" ici à droite 👉
 Extrayez tous les fichiers et faites double clic sur le fichier exécutable
 
 # Avez vous testé ? Laissez un commentaire !
-Si vous avez testé ce petit projet, créez une "Issue" ici tout en haut ☝️
+Si vous avez testé ce petit projet, créez une "Issue" tout en haut ☝️
 
 Séléctionnez l'étiquette "feedback" et dites moi :
 - Avez vous réussi à finir le jeu ?
